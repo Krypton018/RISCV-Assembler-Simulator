@@ -1,5 +1,6 @@
 import os
 import re
+
 registers = {"zero":"00000", 
              "ra":"00001", 
              "sp":"00010", 
@@ -12,8 +13,7 @@ registers = {"zero":"00000",
              "a0":"01010", "a1":"01011", 
              "a2":"01100", "a3":"01101", "a4":"01110", "a5":"01111", "a6":"10000", "a7":"10001",
              "s2":"10010", "s3":"10011", "s4":"10100", "s5":"10101", "s6":"10110", "s7":"10111", "s8":"11000", "s9":"11001", "s10":"11010", "s11":"11011", 
-             "t3":"11100", "t4":"11101", "t5":"11110", "t6":"11111"
-}    
+             "t3":"11100", "t4":"11101", "t5":"11110", "t6":"11111"}    
 
 R_TYPE = {"add" : {"opcode":"0110011", "funct3":"000", "funct7":"0000000"}, 
           "sub" : {"opcode":"0110011", "funct3":"000", "funct7":"0100000"}, 
@@ -33,6 +33,7 @@ B_TYPE = {"beq" : {"opcode":"1100011", "funct3":"000"},
           "blt" : {"opcode":"1100011", "funct3":"000"}}
 
 J_TYPE = {"jal" : {"opcode":"1101111"}}
+
 
 def to_bin(n):
     binary = ""
@@ -75,10 +76,12 @@ def sign_extend(binary, n):
     bit = binary[0]
     return ((n-len(binary))*bit) + binary
 
+
 def r_parse(operation, arguements):
     rd, rs1, rs2 = re.split(',', arguements)
     inst = R_TYPE[operation]["funct7"] +  registers[rs2] +  registers[rs1] +  R_TYPE[operation]["funct3"] +  registers[rd] +  R_TYPE[operation]["opcode"]
     return inst
+
 
 def i_parse(operation, arguements):
     if operation=='lw':
@@ -92,6 +95,7 @@ def i_parse(operation, arguements):
         inst = imm + registers[rs1] + I_TYPE[operation]["funct3"] + registers[rd] + I_TYPE[operation]["opcode"]
     return inst
 
+
 def s_parse(operation, arguments):
     arguments = arguments.rstrip(")")
     rs2, imm, rs1 = re.split(r'[,(]', arguments)
@@ -99,10 +103,17 @@ def s_parse(operation, arguments):
     inst = imm[:7] + registers[rs2] + registers[rs1] + S_TYPE[operation]["funct3"] + imm[7:] + S_TYPE[operation]["opcode"]
     return inst
 
-def j_parse(oper,arg):
-    pass
 
-def b_parse(oper,arg):
+def b_parse(operation, arguments, labels, line_number):
+    rs1, rs2, imm = re.split(',', arguments)
+    if imm in labels:
+        imm = (labels[imm]-line_number)*4
+    imm = sign_extend(to_bin(int(imm)), 13)
+    inst = imm[0] + imm[2:8] + registers[rs2] + registers[rs1] + B_TYPE[operation]["funct3"] + imm[8:-1] + imm[1] + B_TYPE[operation]["opcode"]
+    return inst
+
+
+def j_parse(oper,arg):
     pass
 
 
@@ -139,6 +150,7 @@ def assemble(content):
         elif operation in B_TYPE:
             data += b_parse(operation,arguments,labels,line_number) + "\n"
     print(data.strip())
+
 
 def parse(folder_path):
     for filename in os.listdir(folder_path):
