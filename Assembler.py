@@ -75,11 +75,16 @@ def to_bin(n):
 def sign_extend(binary, n):
     bit = binary[0]
     return ((n-len(binary))*bit) + binary
+# def valid_immediate(immediate,bits):
+#     if(bits==13):
+#         pass
 
 
 def r_parse(operation, arguements):
     rd, rs1, rs2 = re.split(',', arguements)
+
     if ((rd not in registers) or (rs1 not in registers) or (rs2 not in registers)):
+        print("Invalid register name")
         return None
     
     inst = R_TYPE[operation]["funct7"] +  registers[rs2] +  registers[rs1] +  R_TYPE[operation]["funct3"] +  registers[rd] +  R_TYPE[operation]["opcode"]
@@ -90,10 +95,22 @@ def i_parse(operation, arguements):
     if operation=='lw':
         arguements = arguements.rstrip(")")
         rd, imm, rs1 = re.split(r'[,(]', arguements)
+        if((rd not in registers) or (rs1 not in registers) or (not(imm.strip("-").isdigit() and imm !="-"))):
+            print("Invalid register name")
+            return None
+        elif(not(imm.strip("-").isdigit() and imm !="-")):
+            print("Invalid Immediate")
+            return None
         imm = sign_extend(to_bin(int(imm)), 12)
         inst = imm + registers[rs1] + I_TYPE[operation]["funct3"] + registers[rd] + I_TYPE[operation]["opcode"]
     else:
         rd, rs1, imm = re.split(',', arguements)
+        if((rd not in registers) or (rs1 not in registers) or (not(imm.strip("-").isdigit() and imm !="-"))):
+            print("Invalid register name")
+            return None
+        elif(not(imm.strip("-").isdigit() and imm !="-")):
+            print("Invalid Immediate")
+            return None
         imm = sign_extend(to_bin(int(imm)), 12)
         inst = imm + registers[rs1] + I_TYPE[operation]["funct3"] + registers[rd] + I_TYPE[operation]["opcode"]
     return inst
@@ -133,7 +150,6 @@ def get_labels(content):
             label = line.split(":")[0]
             labels[label] = line_number
     return labels
-
 
 def assemble(content):
     labels = get_labels(content)
@@ -206,11 +222,11 @@ def assemble(content):
 # parse(folder_path)
 
 assembly_list = [
-    "sub s0,s2,s2\n",
-    "add r100,a4,-03\n",
-    "sw s3,s6(43)\n",
-    "blt a3,400\n",
-    "lw a4,30(s3)\n",
+    # "sub s0,s2,s2\n",
+    # "add r100,a4,-03\n",
+    # "sw s3,s6(43)\n",
+    # "blt a3,400\n",
+    "lw a2,s5(s3)\n",
     "addi s3,s3,4\n",
     "sw s2,s8(38)\n",
     "add s2,s2,s3\n",
