@@ -152,7 +152,6 @@ def b_parse(operation, arguments, labels, line_number):
             print("Invalid Immediate")
             return None
 
-
     imm = sign_extend(to_bin(int(imm)), 13)
     inst = imm[0] + imm[2:8] + registers[rs2] + registers[rs1] + B_TYPE[operation]["funct3"] + imm[8:-1] + imm[1] + B_TYPE[operation]["opcode"]
     return inst
@@ -160,8 +159,18 @@ def b_parse(operation, arguments, labels, line_number):
 
 def j_parse(operation,arguments, labels, line_number):
     rd, imm = re.split(',', arguments)
-    if imm in labels:
-        imm = (labels[imm]-line_number)*4
+    
+    if (rd not in registers):
+        print("Invalid register name")
+        return None
+    
+    if (not(imm.strip("-").isdigit() and imm !="-")):
+        if imm in labels:
+            imm = (labels[imm]-line_number)*4
+        else:
+            print("Invalid Immediate")
+            return None
+        
     imm = sign_extend(to_bin(int(imm)), 21)
     inst = imm[0] + imm[10:-1] + imm[9] + imm[1:9] + registers[rd] + J_TYPE[operation]["opcode"]
     return inst
@@ -249,6 +258,7 @@ def assemble(content):
 assembly_list = [
     "dhruv123:sub s0,s2,s2\n",
     "beq s1,s0,dhruv123\n",
+    "jal s1,dhruv123\n",
     "sw s3,s6(43)\n",
     "blt a3,400\n",
     "lw a2,s5(s3)\n",
