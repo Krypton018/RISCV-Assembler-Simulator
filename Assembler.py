@@ -33,10 +33,43 @@ B_TYPE = {"beq" : {"opcode":"1100011", "funct3":"000"},
           "blt" : {"opcode":"1100011", "funct3":"000"}}
 
 J_TYPE = {"jal" : {"opcode":"1101111"}}
+def r_parse(oper,arg):
+    pass
+def i_parse(oper,arg):
+    pass
+def s_parse(oper,arg):
+    pass
+def j_parse(oper,arg):
+    pass
+def b_parse(oper,arg):
+    pass
+def get_labels(opera,arg):
+    pass
 
 
 def assemble(content):
-    pass
+    labels = get_labels(content)
+    data = ""
+    for line_number, line in enumerate(content):
+        line = line.strip()
+        if ":" in line:
+            instruction = line.split(":")[1]
+        else:
+            instruction=line
+        instruction = instruction.strip()
+        operation, arguments = instruction.split(" ")
+
+        if operation in R_TYPE:
+            data += r_parse(operation,arguments) + "\n"
+        elif operation in I_TYPE:
+            data += i_parse(operation,arguments) + "\n"
+        elif operation in S_TYPE:
+            data += s_parse(operation,arguments) + "\n"
+        elif operation in J_TYPE:
+            data += j_parse(operation,arguments,labels,line_number) + "\n"
+        elif operation in B_TYPE:
+            data += b_parse(operation,arguments,labels,line_number) + "\n"
+    print(data.strip())
 
 def parse(folder_path):
     for filename in os.listdir(folder_path):
