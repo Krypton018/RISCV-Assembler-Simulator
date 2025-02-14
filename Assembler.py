@@ -1,3 +1,5 @@
+import os
+
 registers = {"zero":"00000", 
              "ra":"00001", 
              "sp":"00010", 
@@ -31,3 +33,24 @@ B_TYPE = {"beq" : {"opcode":"1100011", "funct3":"000"},
           "blt" : {"opcode":"1100011", "funct3":"000"}}
 
 J_TYPE = {"jal" : {"opcode":"1101111"}}
+
+
+def assemble(content):
+    pass
+
+def parse(folder_path):
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+
+        if os.path.isfile(file_path):
+            with open(file_path, "r") as file:
+                content = file.readlines()
+                assemble(content)
+                print(f"Contents of {filename}:\n{content}\n")
+
+
+folder_path = r"..\automatedTesting\tests\assembly\simpleBin"
+
+# \CO_Project_Allocated_jan30_2025\CO_Project_Allocated_jan30_2025
+
+parse(folder_path)
