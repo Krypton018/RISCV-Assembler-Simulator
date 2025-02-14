@@ -25,3 +25,9 @@ I_TYPE = {"lw"   : {"opcode":"0000011", "funct3":"010"},
           "jalr" : {"opcode":"1100111", "funct3":"000"}}
 
 S_TYPE = {"sw" : {"opcode":"0100011", "funct3":"010"}}
+
+B_TYPE = {"beq" : {"opcode":"1100011", "funct3":"000"},
+          "bne" : {"opcode":"1100011", "funct3":"001"},
+          "blt" : {"opcode":"1100011", "funct3":"000"}}
+
+J_TYPE = {"jal" : {"opcode":"1101111"}}
