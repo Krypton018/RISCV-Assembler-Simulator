@@ -34,6 +34,43 @@ B_TYPE = {"beq" : {"opcode":"1100011", "funct3":"000"},
 
 J_TYPE = {"jal" : {"opcode":"1101111"}}
 
+def to_bin(n):
+    binary = ""
+    if n==0:
+        return "0"
+    
+    neg = n<0
+    if neg:
+        n = -n
+    
+    while (n!=0):
+        if n%2==0:
+            binary = "0"+binary
+        else:
+            binary = "1"+binary
+        n//=2   
+    binary = "0"+binary 
+
+    if (neg):
+        flipped = ""
+        piv = False
+        for i in range(len(binary)-1, -1, -1):
+            if not piv:
+                if binary[i]=="0":
+                    flipped = "0"+flipped
+                else:
+                    flipped = "1"+flipped
+                    piv = True
+            else:
+                if binary[i]=="0":
+                    flipped = "1"+flipped
+                else:
+                    flipped = "0"+flipped
+        binary = flipped
+
+    return binary   
+
+
 def sign_extend(binary, n):
     bit = binary[0]
     return ((n-len(binary))*bit) + binary
@@ -45,10 +82,13 @@ def r_parse(operation, arguements):
 
 def i_parse(oper,arg):
     pass
+
 def s_parse(oper,arg):
     pass
+
 def j_parse(oper,arg):
     pass
+
 def b_parse(oper,arg):
     pass
 
