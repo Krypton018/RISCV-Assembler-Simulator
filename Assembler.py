@@ -19,3 +19,7 @@ R_TYPE = {"add" : {"opcode":"0110011", "funct3":"000", "funct7":"0000000"},
           "srl" : {"opcode":"0110011", "funct3":"101", "funct7":"0000000"},
           "or"  : {"opcode":"0110011", "funct3":"110", "funct7":"0000000"},
           "and" : {"opcode":"0110011", "funct3":"111", "funct7":"0000000"}}
+
+I_TYPE = {"lw"   : {"opcode":"0000011", "funct3":"010"},
+          "addi" : {"opcode":"0010011", "funct3":"000"},
+          "jalr" : {"opcode":"1100111", "funct3":"000"}}
