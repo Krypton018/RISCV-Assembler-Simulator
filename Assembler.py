@@ -113,8 +113,13 @@ def b_parse(operation, arguments, labels, line_number):
     return inst
 
 
-def j_parse(oper,arg):
-    pass
+def j_parse(operation,arguments, labels, line_number):
+    rd, imm = re.split(',', arguments)
+    if imm in labels:
+        imm = (labels[imm]-line_number)*4
+    imm = sign_extend(to_bin(int(imm)), 21)
+    inst = imm[0] + imm[10:-1] + imm[9] + imm[1:9] + registers[rd] + J_TYPE[operation]["opcode"]
+    return inst
 
 
 def get_labels(content):
