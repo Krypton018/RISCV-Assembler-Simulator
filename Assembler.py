@@ -95,39 +95,64 @@ def i_parse(operation, arguements):
     if operation=='lw':
         arguements = arguements.rstrip(")")
         rd, imm, rs1 = re.split(r'[,(]', arguements)
-        if((rd not in registers) or (rs1 not in registers) or (not(imm.strip("-").isdigit() and imm !="-"))):
+        
+        if((rd not in registers) or (rs1 not in registers)):
             print("Invalid register name")
             return None
         elif(not(imm.strip("-").isdigit() and imm !="-")):
             print("Invalid Immediate")
             return None
+        
         imm = sign_extend(to_bin(int(imm)), 12)
         inst = imm + registers[rs1] + I_TYPE[operation]["funct3"] + registers[rd] + I_TYPE[operation]["opcode"]
     else:
         rd, rs1, imm = re.split(',', arguements)
-        if((rd not in registers) or (rs1 not in registers) or (not(imm.strip("-").isdigit() and imm !="-"))):
+        
+        if((rd not in registers) or (rs1 not in registers)):
             print("Invalid register name")
             return None
         elif(not(imm.strip("-").isdigit() and imm !="-")):
             print("Invalid Immediate")
             return None
+        
         imm = sign_extend(to_bin(int(imm)), 12)
         inst = imm + registers[rs1] + I_TYPE[operation]["funct3"] + registers[rd] + I_TYPE[operation]["opcode"]
+    
     return inst
 
 
 def s_parse(operation, arguments):
     arguments = arguments.rstrip(")")
     rs2, imm, rs1 = re.split(r'[,(]', arguments)
+
+    if((rs2 not in registers) or (rs1 not in registers)):
+        print("Invalid register name")
+        return None
+    elif(not(imm.strip("-").isdigit() and imm !="-")):
+        print("Invalid Immediate")
+        return None
+
     imm = sign_extend(to_bin(int(imm)), 12)
     inst = imm[:7] + registers[rs2] + registers[rs1] + S_TYPE[operation]["funct3"] + imm[7:] + S_TYPE[operation]["opcode"]
+    
     return inst
 
 
 def b_parse(operation, arguments, labels, line_number):
     rs1, rs2, imm = re.split(',', arguments)
-    if imm in labels:
-        imm = (labels[imm]-line_number)*4
+    
+    if((rs2 not in registers) or (rs1 not in registers)):
+        print("Invalid register name")
+        return None
+    
+    if (not(imm.strip("-").isdigit() and imm !="-")):
+        if imm in labels:
+            imm = (labels[imm]-line_number)*4
+        else:
+            print("Invalid Immediate")
+            return None
+
+
     imm = sign_extend(to_bin(int(imm)), 13)
     inst = imm[0] + imm[2:8] + registers[rs2] + registers[rs1] + B_TYPE[operation]["funct3"] + imm[8:-1] + imm[1] + B_TYPE[operation]["opcode"]
     return inst
@@ -222,10 +247,10 @@ def assemble(content):
 # parse(folder_path)
 
 assembly_list = [
-    # "sub s0,s2,s2\n",
-    # "add r100,a4,-03\n",
-    # "sw s3,s6(43)\n",
-    # "blt a3,400\n",
+    "dhruv123:sub s0,s2,s2\n",
+    "beq s1,s0,dhruv123\n",
+    "sw s3,s6(43)\n",
+    "blt a3,400\n",
     "lw a2,s5(s3)\n",
     "addi s3,s3,4\n",
     "sw s2,s8(38)\n",
