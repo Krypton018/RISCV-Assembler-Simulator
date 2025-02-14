@@ -1,5 +1,5 @@
 import os
-
+import re
 registers = {"zero":"00000", 
              "ra":"00001", 
              "sp":"00010", 
@@ -33,8 +33,16 @@ B_TYPE = {"beq" : {"opcode":"1100011", "funct3":"000"},
           "blt" : {"opcode":"1100011", "funct3":"000"}}
 
 J_TYPE = {"jal" : {"opcode":"1101111"}}
-def r_parse(oper,arg):
-    pass
+
+def sign_extend(binary, n):
+    bit = binary[0]
+    return ((n-len(binary))*bit) + binary
+
+def r_parse(operation, arguements):
+    rd, rs1, rs2 = re.split(',', arguements)
+    inst = R_TYPE[operation]["funct7"] +  registers[rs2] +  registers[rs1] +  R_TYPE[operation]["funct3"] +  registers[rd] +  R_TYPE[operation]["opcode"]
+    return inst
+
 def i_parse(oper,arg):
     pass
 def s_parse(oper,arg):
