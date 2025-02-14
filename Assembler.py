@@ -23,3 +23,5 @@ R_TYPE = {"add" : {"opcode":"0110011", "funct3":"000", "funct7":"0000000"},
 I_TYPE = {"lw"   : {"opcode":"0000011", "funct3":"010"},
           "addi" : {"opcode":"0010011", "funct3":"000"},
           "jalr" : {"opcode":"1100111", "funct3":"000"}}
+
+S_TYPE = {"sw" : {"opcode":"0100011", "funct3":"010"}}
