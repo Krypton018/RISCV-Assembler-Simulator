@@ -79,6 +79,9 @@ def sign_extend(binary, n):
 
 def r_parse(operation, arguements):
     rd, rs1, rs2 = re.split(',', arguements)
+    if ((rd not in registers) or (rs1 not in registers) or (rs2 not in registers)):
+        return None
+    
     inst = R_TYPE[operation]["funct7"] +  registers[rs2] +  registers[rs1] +  R_TYPE[operation]["funct3"] +  registers[rd] +  R_TYPE[operation]["opcode"]
     return inst
 
@@ -136,6 +139,8 @@ def assemble(content):
     labels = get_labels(content)
     data = ""
     for line_number, line in enumerate(content):
+        if (line=="\n"):
+            continue
         line = line.strip()
         if ":" in line:
             instruction = line.split(":")[1]
@@ -145,31 +150,72 @@ def assemble(content):
         operation, arguments = instruction.split(" ")
 
         if operation in R_TYPE:
-            data += r_parse(operation,arguments) + "\n"
+            curr = r_parse(operation,arguments)
+            if curr==None:
+                print(f"Invalid Instruction on Line {line_number}")
+                return
+            data += curr + "\n"
         elif operation in I_TYPE:
-            data += i_parse(operation,arguments) + "\n"
+            curr = i_parse(operation,arguments)
+            if curr==None:
+                print(f"Invalid Instruction on Line {line_number}")
+                return
+            data += curr + "\n"
         elif operation in S_TYPE:
-            data += s_parse(operation,arguments) + "\n"
+            curr = s_parse(operation,arguments)
+            if curr==None:
+                print(f"Invalid Instruction on Line {line_number}")
+                return
+            data += curr + "\n"
         elif operation in J_TYPE:
-            data += j_parse(operation,arguments,labels,line_number) + "\n"
+            curr = j_parse(operation,arguments,labels,line_number)
+            if curr==None:
+                print(f"Invalid Instruction on Line {line_number}")
+                return
+            data += curr + "\n"
         elif operation in B_TYPE:
-            data += b_parse(operation,arguments,labels,line_number) + "\n"
+            curr = b_parse(operation,arguments,labels,line_number)
+            if curr==None:
+                print(f"Invalid Instruction on Line {line_number}")
+                return
+            data += curr + "\n"          
+        else:
+            print(f"Invalid Instruction on Line {line_number}")
+            return
+
     print(data.strip())
+        
 
 
-def parse(folder_path):
-    for filename in os.listdir(folder_path):
-        file_path = os.path.join(folder_path, filename)
 
-        if os.path.isfile(file_path):
-            with open(file_path, "r") as file:
-                content = file.readlines()
-                assemble(content)
-                print(f"Contents of {filename}:\n{content}\n")
+# def parse(folder_path):
+#     for filename in os.listdir(folder_path):
+#         file_path = os.path.join(folder_path, filename)
+
+#         if os.path.isfile(file_path):
+#             with open(file_path, "r") as file:
+#                 content = file.readlines()
+#                 assemble(content)
+#                 print(f"Contents of {filename}:\n{content}\n")
 
 
-folder_path = r"..\automatedTesting\tests\assembly\simpleBin"
+# folder_path = r"..\automatedTesting\tests\assembly\simpleBin"
 
-# \CO_Project_Allocated_jan30_2025\CO_Project_Allocated_jan30_2025
+# # \CO_Project_Allocated_jan30_2025\CO_Project_Allocated_jan30_2025
 
-parse(folder_path)
+# parse(folder_path)
+
+assembly_list = [
+    "sub s0,s2,s2\n",
+    "add r100,a4,-03\n",
+    "sw s3,s6(43)\n",
+    "blt a3,400\n",
+    "lw a4,30(s3)\n",
+    "addi s3,s3,4\n",
+    "sw s2,s8(38)\n",
+    "add s2,s2,s3\n",
+    "sw s4,50(a5)\n",
+    "and a5,s2,s6\n"
+]
+
+assemble(assembly_list)
