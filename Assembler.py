@@ -80,11 +80,24 @@ def r_parse(operation, arguements):
     inst = R_TYPE[operation]["funct7"] +  registers[rs2] +  registers[rs1] +  R_TYPE[operation]["funct3"] +  registers[rd] +  R_TYPE[operation]["opcode"]
     return inst
 
-def i_parse(oper,arg):
-    pass
+def i_parse(operation, arguements):
+    if operation=='lw':
+        arguements = arguements.rstrip(")")
+        rd, imm, rs1 = re.split(r'[,(]', arguements)
+        imm = sign_extend(to_bin(int(imm)), 12)
+        inst = imm + registers[rs1] + I_TYPE[operation]["funct3"] + registers[rd] + I_TYPE[operation]["opcode"]
+    else:
+        rd, rs1, imm = re.split(',', arguements)
+        imm = sign_extend(to_bin(int(imm)), 12)
+        inst = imm + registers[rs1] + I_TYPE[operation]["funct3"] + registers[rd] + I_TYPE[operation]["opcode"]
+    return inst
 
-def s_parse(oper,arg):
-    pass
+def s_parse(operation, arguments):
+    arguments = arguments.rstrip(")")
+    rs2, imm, rs1 = re.split(r'[,(]', arguments)
+    imm = sign_extend(to_bin(int(imm)), 12)
+    inst = imm[:7] + registers[rs2] + registers[rs1] + S_TYPE[operation]["funct3"] + imm[7:] + S_TYPE[operation]["opcode"]
+    return inst
 
 def j_parse(oper,arg):
     pass
