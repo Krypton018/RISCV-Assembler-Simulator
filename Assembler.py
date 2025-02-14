@@ -43,8 +43,16 @@ def j_parse(oper,arg):
     pass
 def b_parse(oper,arg):
     pass
-def get_labels(opera,arg):
-    pass
+
+
+def get_labels(content):
+    labels = {}
+    for line_number, line in enumerate(content):
+        line = line.strip()
+        if ":" in line:
+            label = line.split(":")[0]
+            labels[label] = line_number
+    return labels
 
 
 def assemble(content):
