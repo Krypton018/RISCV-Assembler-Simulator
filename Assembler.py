@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 
 registers = {"zero":"00000", 
              "ra":"00001", 
@@ -75,17 +76,13 @@ def to_bin(n):
 def sign_extend(binary, n):
     bit = binary[0]
     return ((n-len(binary))*bit) + binary
-# def valid_immediate(immediate,bits):
-#     if(bits==13):
-#         pass
 
 
 def r_parse(operation, arguements):
     rd, rs1, rs2 = re.split(',', arguements)
 
     if ((rd not in registers) or (rs1 not in registers) or (rs2 not in registers)):
-        print("Invalid register name")
-        return None
+        return [None, "Invalid register name"]
     
     inst = R_TYPE[operation]["funct7"] +  registers[rs2] +  registers[rs1] +  R_TYPE[operation]["funct3"] +  registers[rd] +  R_TYPE[operation]["opcode"]
     return inst
@@ -97,11 +94,9 @@ def i_parse(operation, arguements):
         rd, imm, rs1 = re.split(r'[,(]', arguements)
         
         if((rd not in registers) or (rs1 not in registers)):
-            print("Invalid register name")
-            return None
+            return [None, "Invalid register name"]
         elif(not(imm.strip("-").isdigit() and imm !="-")):
-            print("Invalid Immediate")
-            return None
+            return [None, "Invalid Immediate"]
         
         imm = sign_extend(to_bin(int(imm)), 12)
         inst = imm + registers[rs1] + I_TYPE[operation]["funct3"] + registers[rd] + I_TYPE[operation]["opcode"]
@@ -109,11 +104,9 @@ def i_parse(operation, arguements):
         rd, rs1, imm = re.split(',', arguements)
         
         if((rd not in registers) or (rs1 not in registers)):
-            print("Invalid register name")
-            return None
+            return [None, "Invalid register name"]
         elif(not(imm.strip("-").isdigit() and imm !="-")):
-            print("Invalid Immediate")
-            return None
+            return [None, "Invalid Immediate"]
         
         imm = sign_extend(to_bin(int(imm)), 12)
         inst = imm + registers[rs1] + I_TYPE[operation]["funct3"] + registers[rd] + I_TYPE[operation]["opcode"]
@@ -126,11 +119,9 @@ def s_parse(operation, arguments):
     rs2, imm, rs1 = re.split(r'[,(]', arguments)
 
     if((rs2 not in registers) or (rs1 not in registers)):
-        print("Invalid register name")
-        return None
+        return [None, "Invalid register name"]
     elif(not(imm.strip("-").isdigit() and imm !="-")):
-        print("Invalid Immediate")
-        return None
+        return [None, "Invalid Immediate"]
 
     imm = sign_extend(to_bin(int(imm)), 12)
     inst = imm[:7] + registers[rs2] + registers[rs1] + S_TYPE[operation]["funct3"] + imm[7:] + S_TYPE[operation]["opcode"]
@@ -142,15 +133,13 @@ def b_parse(operation, arguments, labels, line_number):
     rs1, rs2, imm = re.split(',', arguments)
     
     if((rs2 not in registers) or (rs1 not in registers)):
-        print("Invalid register name")
-        return None
+        return [None, "Invalid register name"]
     
     if (not(imm.strip("-").isdigit() and imm !="-")):
         if imm in labels:
             imm = (labels[imm]-line_number)*4
         else:
-            print("Invalid Immediate")
-            return None
+            return [None, "Invalid Immediate"]
 
     imm = sign_extend(to_bin(int(imm)), 13)
     inst = imm[0] + imm[2:8] + registers[rs2] + registers[rs1] + B_TYPE[operation]["funct3"] + imm[8:-1] + imm[1] + B_TYPE[operation]["opcode"]
@@ -161,15 +150,13 @@ def j_parse(operation,arguments, labels, line_number):
     rd, imm = re.split(',', arguments)
     
     if (rd not in registers):
-        print("Invalid register name")
-        return None
+        return [None, "Invalid register name"]
     
     if (not(imm.strip("-").isdigit() and imm !="-")):
         if imm in labels:
             imm = (labels[imm]-line_number)*4
         else:
-            print("Invalid Immediate")
-            return None
+            return [None, "Invalid Immediate"]
         
     imm = sign_extend(to_bin(int(imm)), 21)
     inst = imm[0] + imm[10:-1] + imm[9] + imm[1:9] + registers[rd] + J_TYPE[operation]["opcode"]
@@ -187,7 +174,7 @@ def get_labels(content):
 
 def assemble(content):
     labels = get_labels(content)
-    data = ""
+    data = []
     for line_number, line in enumerate(content):
         if (line=="\n"):
             continue
@@ -201,72 +188,58 @@ def assemble(content):
 
         if operation in R_TYPE:
             curr = r_parse(operation,arguments)
-            if curr==None:
+            if curr[0]==None:
                 print(f"Invalid Instruction on Line {line_number}")
-                return
-            data += curr + "\n"
+                print(curr[1])
+                return None
+            data.append(curr + "\n")
         elif operation in I_TYPE:
             curr = i_parse(operation,arguments)
-            if curr==None:
+            if curr[0]==None:
                 print(f"Invalid Instruction on Line {line_number}")
-                return
-            data += curr + "\n"
+                print(curr[1])
+                return None
+            data.append(curr + "\n")
         elif operation in S_TYPE:
             curr = s_parse(operation,arguments)
-            if curr==None:
+            if curr[0]==None:
                 print(f"Invalid Instruction on Line {line_number}")
-                return
-            data += curr + "\n"
+                print(curr[1])
+                return None
+            data.append(curr + "\n")
         elif operation in J_TYPE:
             curr = j_parse(operation,arguments,labels,line_number)
-            if curr==None:
+            if curr[0]==None:
                 print(f"Invalid Instruction on Line {line_number}")
-                return
-            data += curr + "\n"
+                print(curr[1])
+                return None
+            data.append(curr + "\n")
         elif operation in B_TYPE:
             curr = b_parse(operation,arguments,labels,line_number)
-            if curr==None:
+            if curr[0]==None:
                 print(f"Invalid Instruction on Line {line_number}")
-                return
-            data += curr + "\n"          
+                print(curr[1])
+                return None
+            data.append(curr + "\n")         
         else:
             print(f"Invalid Instruction on Line {line_number}")
             return
 
-    print(data.strip())
-        
+    return data
 
 
+# input_folder = r"..\automatedTesting\tests\assembly\simpleBin\Ex_test_0.txt"
+# output_folder = r"..\automatedTesting\tests\assembly\user_bin_s\Ex_test_0.txt"
 
-# def parse(folder_path):
-#     for filename in os.listdir(folder_path):
-#         file_path = os.path.join(folder_path, filename)
+input_file = sys.argv[1]
+output_file = sys.argv[2]
 
-#         if os.path.isfile(file_path):
-#             with open(file_path, "r") as file:
-#                 content = file.readlines()
-#                 assemble(content)
-#                 print(f"Contents of {filename}:\n{content}\n")
-
-
-# folder_path = r"..\automatedTesting\tests\assembly\simpleBin"
-
-# # \CO_Project_Allocated_jan30_2025\CO_Project_Allocated_jan30_2025
-
-# parse(folder_path)
-
-assembly_list = [
-    "dhruv123:sub s0,s2,s2\n",
-    "beq s1,s0,dhruv123\n",
-    "jal s1,dhruv123\n",
-    "sw s3,s6(43)\n",
-    "blt a3,400\n",
-    "lw a2,s5(s3)\n",
-    "addi s3,s3,4\n",
-    "sw s2,s8(38)\n",
-    "add s2,s2,s3\n",
-    "sw s4,50(a5)\n",
-    "and a5,s2,s6\n"
-]
-
-assemble(assembly_list)
+if not os.path.isfile(input_file):
+    print(f"Invalid File Path")
+else:
+    with open(input_file, 'r') as f:
+        content = f.readlines()
+        data = assemble(content)
+    if data!=None:
+        with open(output_file, 'w') as f:
+            f.writelines(data)
