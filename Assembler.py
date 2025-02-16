@@ -214,12 +214,11 @@ input_file = sys.argv[1]
 output_file = sys.argv[2]
 
 if not os.path.isfile(input_file):
-    sys.exit("Invalid File Path")
+    sys.exit("\nInvalid File Path\n")
 
 
 with open(input_file, 'r') as f:
     content = f.readlines()
     data = assemble(content)
-if data!=None:
-    with open(output_file, 'w') as f:
-        f.writelines(data)
+with open(output_file, 'w') as f:
+    f.writelines(data)
