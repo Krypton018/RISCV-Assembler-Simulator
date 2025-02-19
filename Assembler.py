@@ -82,7 +82,7 @@ def r_parse(operation, arguements, line_number):
     rd, rs1, rs2 = re.split(',', arguements)
 
     if ((rd not in registers) or (rs1 not in registers) or (rs2 not in registers)):
-        sys.exit(f"\nInvalid Instruction on Line {line_number}\nInvalid register name\n")
+        sys.exit(f"\nInvalid Instruction on Line {line_number+1}\nInvalid register name\n")
     
     inst = R_TYPE[operation]["funct7"] +  registers[rs2] +  registers[rs1] +  R_TYPE[operation]["funct3"] +  registers[rd] +  R_TYPE[operation]["opcode"]
     return inst
@@ -94,9 +94,9 @@ def i_parse(operation, arguements, line_number):
         rd, imm, rs1 = re.split(r'[,(]', arguements)
         
         if((rd not in registers) or (rs1 not in registers)):
-            sys.exit(f"\nInvalid Instruction on Line {line_number}\nInvalid register name\n")
+            sys.exit(f"\nInvalid Instruction on Line {line_number+1}\nInvalid register name\n")
         elif(not(imm.strip("-").isdigit() and imm !="-")):
-            sys.exit(f"\nInvalid Instruction on Line {line_number}\nInvalid Immediate\n")
+            sys.exit(f"\nInvalid Instruction on Line {line_number+1}\nInvalid Immediate\n")
         
         imm = sign_extend(to_bin(int(imm)), 12)
         inst = imm + registers[rs1] + I_TYPE[operation]["funct3"] + registers[rd] + I_TYPE[operation]["opcode"]
@@ -104,9 +104,9 @@ def i_parse(operation, arguements, line_number):
         rd, rs1, imm = re.split(',', arguements)
         
         if((rd not in registers) or (rs1 not in registers)):
-            sys.exit(f"\nInvalid Instruction on Line {line_number}\nInvalid register name\n")
+            sys.exit(f"\nInvalid Instruction on Line {line_number+1}\nInvalid register name\n")
         elif(not(imm.strip("-").isdigit() and imm !="-")):
-            sys.exit(f"\nInvalid Instruction on Line {line_number}\nInvalid Immediate\n")
+            sys.exit(f"\nInvalid Instruction on Line {line_number+1}\nInvalid Immediate\n")
         
         imm = sign_extend(to_bin(int(imm)), 12)
         inst = imm + registers[rs1] + I_TYPE[operation]["funct3"] + registers[rd] + I_TYPE[operation]["opcode"]
@@ -119,9 +119,9 @@ def s_parse(operation, arguments, line_number):
     rs2, imm, rs1 = re.split(r'[,(]', arguments)
 
     if((rs2 not in registers) or (rs1 not in registers)):
-        sys.exit(f"\nInvalid Instruction on Line {line_number}\nInvalid register name\n")
+        sys.exit(f"\nInvalid Instruction on Line {line_number+1}\nInvalid register name\n")
     elif(not(imm.strip("-").isdigit() and imm !="-")):
-        sys.exit(f"\nInvalid Instruction on Line {line_number}\nInvalid Immediate\n")
+        sys.exit(f"\nInvalid Instruction on Line {line_number+1}\nInvalid Immediate\n")
 
     imm = sign_extend(to_bin(int(imm)), 12)
     inst = imm[:7] + registers[rs2] + registers[rs1] + S_TYPE[operation]["funct3"] + imm[7:] + S_TYPE[operation]["opcode"]
@@ -133,13 +133,13 @@ def b_parse(operation, arguments, labels, line_number):
     rs1, rs2, imm = re.split(',', arguments)
     
     if((rs2 not in registers) or (rs1 not in registers)):
-        sys.exit(f"\nInvalid Instruction on Line {line_number}\nInvalid register name\n")
+        sys.exit(f"\nInvalid Instruction on Line {line_number+1}\nInvalid register name\n")
     
     if (not(imm.strip("-").isdigit() and imm !="-")):
         if imm in labels:
             imm = (labels[imm]-line_number)*4
         else:
-            sys.exit(f"\nInvalid Instruction on Line {line_number}\nInvalid Immediate\n")
+            sys.exit(f"\nInvalid Instruction on Line {line_number+1}\nInvalid Immediate\n")
 
     imm = sign_extend(to_bin(int(imm)), 13)
     inst = imm[0] + imm[2:8] + registers[rs2] + registers[rs1] + B_TYPE[operation]["funct3"] + imm[8:-1] + imm[1] + B_TYPE[operation]["opcode"]
@@ -150,13 +150,13 @@ def j_parse(operation,arguments, labels, line_number):
     rd, imm = re.split(',', arguments)
     
     if (rd not in registers):
-        sys.exit(f"\nInvalid Instruction on Line {line_number}\nInvalid register name\n")
+        sys.exit(f"\nInvalid Instruction on Line {line_number+1}\nInvalid register name\n")
     
     if (not(imm.strip("-").isdigit() and imm !="-")):
         if imm in labels:
             imm = (labels[imm]-line_number)*4
         else:
-            sys.exit(f"\nInvalid Instruction on Line {line_number}\nInvalid Immediate\n")
+            sys.exit(f"\nInvalid Instruction on Line {line_number+1}\nInvalid Immediate\n")
         
     imm = sign_extend(to_bin(int(imm)), 21)
     inst = imm[0] + imm[10:-1] + imm[9] + imm[1:9] + registers[rd] + J_TYPE[operation]["opcode"]
@@ -202,7 +202,7 @@ def assemble(content):
             curr = b_parse(operation,arguments,labels,line_number)
             data.append(curr + "\n")         
         else:
-            sys.exit(f"\nInvalid Instruction on Line {line_number}\nInvalid Instruction type\n")
+            sys.exit(f"\nInvalid Instruction on Line {line_number+1}\nInvalid Instruction type\n")
 
     return data
 
