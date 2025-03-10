@@ -18,6 +18,29 @@ memory = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 
+def bin_to_hex(bin_str):
+    hex_dict = {10:"A", 11:"B", 12:"C", 13:"D", 14:"E", 15:"F"}
+    
+
+    if (len(bin_str)%4 != 0):
+            bin_str = str(bin_str[0])*(4 - len(bin_str)%4) + bin_str
+
+
+    hex_str = ""
+    while (bin_str != ""):
+        val = int(bin_str[0])*8 + int(bin_str[1])*4 + int(bin_str[2])*2 + int(bin_str[3])*1
+
+        if (val in hex_dict):
+            hex_str = hex_str + hex_dict[val]
+        else:
+            hex_str = hex_str + str(val) 
+
+        bin_str = bin_str[4:]
+
+    return hex_str
+
+
+
 # BASE CONVERSIONS
 # bin to dec (2s complement)
 # perform algebraic in decimal
