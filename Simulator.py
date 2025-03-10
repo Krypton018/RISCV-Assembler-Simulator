@@ -18,6 +18,7 @@ memory = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 
+
 def bin_to_hex(bin_str):
     hex_dict = {10:"A", 11:"B", 12:"C", 13:"D", 14:"E", 15:"F"}
     
@@ -38,6 +39,45 @@ def bin_to_hex(bin_str):
         bin_str = bin_str[4:]
 
     return hex_str
+
+
+
+def bSim(instruction):
+    immediate = instruction[0] + instruction[24] + instruction[1:7] + instruction[20:24]
+    
+    rs2 = instruction[7:12]
+    rs1 = instruction[12:17]
+    funct3 = instruction[17:20]
+    
+
+    if (rs1 not in registers or rs2 not in registers):
+        print(f"Invalid Register on line {(registers["PC"]/4)+4}")
+
+
+    if (funct3 == "000"):
+        if (registers[rs1] == registers[rs2]):
+            registers["PC"] += int(immediate)
+        else:
+            registers["PC"] += 4
+
+    elif (funct3 == "001"):
+        if (registers[rs1] != registers[rs2]):
+            registers["PC"] += int(immediate)
+        else:
+            registers["PC"] += 4
+
+    else:
+        print("Invalid funct3 value")
+
+    return registers["PC"]
+
+
+#immediate value expression for J type (Dhruv's expression, not Bhavya's)-->
+#immediate = instruction[0] + instruction[12:20] + instruction[11] + instruction[1:11]
+
+
+
+
 
 
 
