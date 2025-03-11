@@ -16,9 +16,8 @@ registers = {
 
 memory = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-
-
-
+# dhruv
+'''--------------------------------------------------------------------------------------'''
 def bin_to_hex(bin_str):
     hex_dict = {10:"A", 11:"B", 12:"C", 13:"D", 14:"E", 15:"F"}
     
@@ -70,8 +69,45 @@ def bSim(instruction):
         print("Invalid funct3 value")
 
     return registers["PC"]
+'''---------------------------------------------------------------------------------------------'''
+# Ashmit
+'''----------------------------------------------------------------------------------------------'''
+def bin_to_dec():pass
+def rSim(instruction):
+    rs1=instruction[12:17]
+    rs2=instruction[7:12]
+    rd=instruction[20:25]
+    if(instruction[17:20]=="000" and instruction[0:7]=="0000000"):
+        registers[rd]=registers[rs1]+registers[rs2]
 
+    elif(instruction[17:20]=="000" and instruction[0:7]=="0100000"):
+        registers[rd]=registers[rs1]-registers[rs2]
 
+    elif(instruction[17:20]=="010"):
+        if(registers[rs1]<registers[rs2]):
+            registers[rd]=1
+        else:
+            registers[rd]=0
+
+    elif(instruction[17:20]=="101"):
+        rightshift=registers[rs2]&31
+        registers[rd]=registers[rs1]>>rightshift
+
+    elif(instruction[17:20]=="110"):
+        registers[rd]=registers[rs1]|registers[rs2]
+
+    elif(instruction[17:20]=="111"):
+        registers[rd]=registers[rs1]&registers[rs2]
+    
+    return registers["PC"]+4
+
+def sSim(instruction):
+    imm=instruction[0:7]+instruction[20:25]
+    rs1=instruction[12:17]
+    rs2=instruction[7:12]
+    memory[registers[rs1]+bin_to_dec(imm)]=rs2
+    return registers["PC"]+4
+'''------------------------------------------------------------------------------------------'''
 #immediate value expression for J type (Dhruv's expression, not Bhavya's)-->
 #immediate = instruction[0] + instruction[12:20] + instruction[11] + instruction[1:11]
 
