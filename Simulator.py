@@ -16,6 +16,44 @@ registers = {
 
 memory = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+# From assembler
+def dec_to_bin(n):
+    binary = ""
+    if n==0:
+        return "0"
+    
+    neg = n<0
+    if neg:
+        n = -n
+    
+    while (n!=0):
+        if n%2==0:
+            binary = "0"+binary
+        else:
+            binary = "1"+binary
+        n//=2   
+    binary = "0"+binary 
+
+    if (neg):
+        flipped = ""
+        piv = False
+        for i in range(len(binary)-1, -1, -1):
+            if not piv:
+                if binary[i]=="0":
+                    flipped = "0"+flipped
+                else:
+                    flipped = "1"+flipped
+                    piv = True
+            else:
+                if binary[i]=="0":
+                    flipped = "1"+flipped
+                else:
+                    flipped = "0"+flipped
+        binary = flipped
+
+    return binary
+
 # dhruv
 '''--------------------------------------------------------------------------------------'''
 def bin_to_hex(bin_str):
@@ -110,6 +148,98 @@ def sSim(instruction):
 '''------------------------------------------------------------------------------------------'''
 #immediate value expression for J type (Dhruv's expression, not Bhavya's)-->
 #immediate = instruction[0] + instruction[12:20] + instruction[11] + instruction[1:11]
+
+
+
+
+def jSim(instruction):
+    imm = instruction[0] + instruction[10:20] + instruction[9] + instruction[1:9] + '0'
+    rd = instruction[20:25]
+    registers[rd] = registers['PC'] + 4
+
+
+    return registers['PC'] + bin_to_dec(imm) 
+
+# SIMULATE
+def simulate(inst):
+    halt = False
+
+    while(not halt):
+        
+        # All instructions have been read
+        if(registers['PC']//4 >= len(inst)):
+            halt = True
+            break
+
+        instruction =  inst[registers['PC']//4]
+        
+        opcode = instruction[-7:]
+        
+        if (opcode == '0110011'):
+            registers['PC'] = rSim(instruction)
+
+        elif (opcode == '0000011' or opcode == '0010011' or opcode == '1100111'):
+            registers['PC'] = iSim(instruction)
+
+        elif (opcode == '0100011'):
+            registers['PC'] = sSim(instruction)
+        
+        elif (opcode == '1100011'):
+            registers['PC'], halt = bSim(instruction)
+        
+        elif (opcode == '1101111'):
+            registers['PC'] = jSim(instruction)
+
+        else:
+            # ERROR HANDLING SYS
+            print('Invalid Instruction') 
+        
+        for i in registers:
+            print(registers[i], end=' ')
+        print()
+    for i in memory:
+        print(memory[i])
+        
+
+# instructions = [
+#     "00000000010100000000010010010011",
+#     "00000000000000000000100100010011",
+#     "00000000010100000010001100110011",
+#     "00000000100110010101101000110011",
+#     "00000000000000000000000001100011"
+# ]
+instructions = [
+    "00000000100010010000101000010011",
+    "00000000010010110000101100010011",
+    "00000000100101000110111100110011",
+    "00000001000010110000101100010011",
+    "00000001100000001000000001100111",
+    "00000000100101000000010001100011",
+    "00000000010000000000001010010011",
+    "00000000100001000000010000010011",
+    "00000000101000000000000011101111",
+    "00000001001101000101101000110011",
+    "00000000100011110111010100110011",
+    "00010000000000000000101010010011",
+    "00010000000000000000101010010011",
+    "00010000000000000000101010010011",
+    "00010000000000000000101010010011",
+    "00000001010110101000101010110011",
+    "00000001010110101000101010110011",
+    "00000001010110101000101010110011",
+    "00000001010110101000101010110011",
+    "00000001010110101000101010110011",
+    "00000001010110101000101010110011",
+    "00000001010110101000101010110011",
+    "00000001010110101000101010110011",
+    "00000000000010101010111010000011",
+    "00000000000000000000000001100011"
+]
+
+simulate(instructions)
+
+
+
 
 
 
