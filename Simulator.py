@@ -78,16 +78,17 @@ def bin_to_hex(bin_str):
     return hex_str
 
 
-
 def bin_to_dec(s):
-    s.strip()
-    n=len(s)
+    s = s.strip()
+    n = len(s)
     num=0
     for i in range(n-1,-1,-1):
         num+=int(s[i])*(1<<(n-1-i))
-    return(num)
 
-
+    if s[0] == '1':  
+        num = -((1 << n) - num)
+    
+    return num
 
 def rSim(instruction):
     rs1=instruction[12:17]
@@ -121,16 +122,17 @@ def rSim(instruction):
 
 def lw(imm,rs1,f3,rd):
     registers[rd]=memory[registers[rs1]+bin_to_dec(imm)]
+    return registers['PC'] + 4
 
 def addi(imm,rs1,f3,rd):
     registers[rd]=registers[rs1]+bin_to_dec(imm)
+    return registers['PC'] + 4
 
 def jalr(imm,rs1,f3,rd):
-    registers["PC"]|=1
-    registers["PC"]^=1
     registers[rd]=registers["PC"]+4
-    return_address=rd
-    registers["PC"]=registers[rs1]+bin_to_dec(imm)
+    return_address = registers[rs1]+bin_to_dec(imm)
+    return_address |= 1
+    return_address ^= 1
     return return_address
 
 def iSim(instruction):
@@ -150,12 +152,12 @@ def iSim(instruction):
     for i in range(25,32):
         op+=instruction[i]
     if(op=="0000011"):
-        lw(imm,rs1,f3,rd)
+        return_address = lw(imm,rs1,f3,rd)
     elif (op=="0010011"):
-        addi(imm,rs1,f3,rd)
+        return_address = addi(imm,rs1,f3,rd)
     elif (op=="1100111"):
-        return_address=jalr(imm,rs1,f3,rd)
-
+        return_address = jalr(imm,rs1,f3,rd)
+    return return_address
 
 
 def sSim(instruction):
@@ -168,7 +170,10 @@ def sSim(instruction):
 
 
 def bSim(instruction):
-    immediate = instruction[0] + instruction[24] + instruction[1:7] + instruction[20:24]
+    immediate = instruction[0] + instruction[24] + instruction[1:7] + instruction[20:24] + '0'
+    immediate = bin_to_dec(immediate)
+
+    vHalt = False
     
     rs2 = instruction[7:12]
     rs1 = instruction[12:17]
@@ -176,25 +181,29 @@ def bSim(instruction):
     
 
     if (rs1 not in registers or rs2 not in registers):
-        print(f"Invalid Register on line {(registers["PC"]/4)+4}")
+        print(f"Invalid Register on line {(registers["PC"]//4)+4}")
 
 
     if (funct3 == "000"):
         if (registers[rs1] == registers[rs2]):
             registers["PC"] += int(immediate)
+            if (int(immediate) == 0 ):
+                vHalt = True
         else:
             registers["PC"] += 4
 
     elif (funct3 == "001"):
         if (registers[rs1] != registers[rs2]):
             registers["PC"] += int(immediate)
+            if (int(immediate) == 0 ):
+                vHalt = True
         else:
             registers["PC"] += 4
 
     else:
         print("Invalid funct3 value")
 
-    return registers["PC"]
+    return registers["PC"], vHalt
 
 
 
@@ -211,18 +220,21 @@ def jSim(instruction):
 
 
 
-filepath="input.txt" #for now
-instructions=[]
-memory_info={}
-file=open(filepath,"r")
-data=file.readlines()
-file.close()
-for i in data:
-    if i[1]=="b":
-        instructions.append(l.strip() for l in i.split())
-    else:
-        l=i.split(":")
-        memory_info[l[0].strip()]=l[1].strip()
+# filepath="input.txt" #for now
+# instructions=[]
+# memory_info={}
+# file=open(filepath,"r")
+# data=file.readlines()
+# file.close()
+# for i in data:
+#     if i[1]=="b":
+#         instructions.append(l.strip() for l in i.split())
+#     else:
+#         l=i.split(":")
+#         memory_info[l[0].strip()]=l[1].strip()
+
+
+
 
 
 
@@ -264,7 +276,7 @@ def simulate(inst):
             print(registers[i], end=' ')
         print()
     for i in memory:
-        print(memory[i])
+        print(i)
         
 
 # instructions = [
@@ -274,44 +286,67 @@ def simulate(inst):
 #     "00000000100110010101101000110011",
 #     "00000000000000000000000001100011"
 # ]
+# instructions = [
+#     "00000000101000000000010100010011",
+#     "00000000000000000000001010010011",
+#     "00000000000100000000001100010011",
+#     "00000000000100000000001110010011",
+#     "00000010000001010000001001100011",
+#     "00000010011101010000001001100011",
+#     "00000000011000101000010110110011",
+#     "00000000000000110000001010010011",
+#     "00000000000001011000001100010011",
+#     "00000000000100111000001110010011",
+#     "11111110101000111001100011100011",
+#     "00000101110100000000100010010011",
+#     "00000000000000000000010100010011",
+#     "00000000000000000000010110010011",
+#     "00000000000100000000010110010011",
+#     "00000000000000000000000001100011"
+# ]
+# instructions = [
+#     "00000000011110100000101000010011",
+#     "01000001010000000000111100110011",
+#     "00000001010010100000101010110011",
+#     "00000001010110100010111000110011",
+#     "00000001010010101010111010110011",
+#     "00000001010011101101100000110011",
+#     "00000001110111101101100010110011",
+#     "00000000000000000000000001100011"
+# ]
 instructions = [
-    "00000000100010010000101000010011",
-    "00000000010010110000101100010011",
-    "00000000100101000110111100110011",
-    "00000001000010110000101100010011",
-    "00000001100000001000000001100111",
-    "00000000100101000000010001100011",
-    "00000000010000000000001010010011",
-    "00000000100001000000010000010011",
-    "00000000101000000000000011101111",
-    "00000001001101000101101000110011",
-    "00000000100011110111010100110011",
-    "00010000000000000000101010010011",
-    "00010000000000000000101010010011",
-    "00010000000000000000101010010011",
-    "00010000000000000000101010010011",
-    "00000001010110101000101010110011",
-    "00000001010110101000101010110011",
-    "00000001010110101000101010110011",
-    "00000001010110101000101010110011",
-    "00000001010110101000101010110011",
-    "00000001010110101000101010110011",
-    "00000001010110101000101010110011",
-    "00000001010110101000101010110011",
-    "00000000000010101010111010000011",
+    "00000000010100000000010010010011",
+    "00000000000000000000100100010011",
+    "00000000010100000010001100110011",
+    "11111111100000010000000100010011",
+    "00000001100000000000000001100111",
+    "00000000100010010000100110010011",
+    "00010000000000000000101000010011",
+    "00000001010010100000101000110011",
+    "00000001010010100000101000110011",
+    "00000001010010100000101000110011",
+    "00000001010010100000101000110011",
+    "00000001010010100000101000110011",
+    "00000001010010100000101000110011",
+    "00000001010010100000101000110011",
+    "00000001010010100000101000110011",
+    "00000000101010100010000000100011",
+    "00000000000010100010101100000011",
+    "00000000101010100010000000100011",
+    "00000000000010100010110000000011",
+    "00000000101010100010000000100011",
+    "00000001001010100010000000100011",
+    "00000000010000010000000100010011",
+    "00000000000000010010001010000011",
     "00000000000000000000000001100011"
 ]
+
 
 simulate(instructions)
 
 
-
-
-
-
-
-
-
+# 000000011000 00000 000 00000 1100111
+# 24
 
 # BASE CONVERSIONS
 # bin to dec (2s complement)
