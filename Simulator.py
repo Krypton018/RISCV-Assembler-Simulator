@@ -78,7 +78,85 @@ def bin_to_hex(bin_str):
     return hex_str
 
 
+#====================================================================================================================
+def bin_to_dec(s):
+    s.strip()
+    n=len(s)
+    num=0
+    for i in range(n-1,-1,-1):
+        num+=int(s[i])*(1<<(n-1-i))
+    return(num)
 
+print(bin_to_dec(input()))
+
+# registers = {
+#     "PC": 0,
+#     "00000": 0, "00001": 0, "00010": 0, "00011": 0, "00100": 0, "00101": 0,
+#     "00110": 0, "00111": 0, "01000": 0, "01001": 0, "01010": 0, "01011": 0,
+#     "01100": 0, "01101": 0, "01110": 0, "01111": 0, "10000": 0, "10001": 0,
+#     "10010": 0, "10011": 0, "10100": 0, "10101": 0, "10110": 0, "10111": 0,
+#     "11000": 0, "11001": 0, "11010": 0, "11011": 0, "11100": 0, "11101": 0,
+#     "11110": 0, "11111": 0
+# }
+# memory = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+#           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+def lw(imm,rs1,f3,rd):
+    registers[rd]=memory[registers[rs1]+bin_to_dec(imm)]
+
+def addi(imm,rs1,f3,rd):
+    registers[rd]=registers[rs1]+bin_to_dec(imm)
+
+def jalr(imm,rs1,f3,rd):
+    registers["PC"]|=1
+    registers["PC"]^=1
+    registers[rd]=registers["PC"]+4
+    return_address=rd
+    registers["PC"]=registers[rs1]+bin_to_dec(imm)
+    return return_address
+
+
+
+def isim(instruction):
+    imm=""
+    rd=""
+    rs1=""
+    f3=""
+    op=""
+    for i in range(12):
+        imm+=instruction[i]
+    for i in range(12,17):
+        rs1+=instruction[i]
+    for i in range(17,20):
+        f3+=instruction[i]
+    for i in range(20,25):
+        rd+=instruction[i]
+    for i in range(25,32):
+        op+=instruction[i]
+    if(op=="0000011"):
+        lw(imm,rs1,f3,rd)
+    elif (op=="0010011"):
+        addi(imm,rs1,f3,rd)
+    elif (op=="1100111"):
+        return_address=jalr(imm,rs1,f3,rd)
+
+
+#=============================FILE PARSE=========================
+
+filepath="input.txt" #for now
+instructions=[]
+memory_info={}
+file=open(filepath,"r")
+data=file.readlines()
+file.close()
+for i in data:
+    if i[1]=="b":
+        instructions.append(l.strip() for l in i.split())
+    else:
+        l=i.split(":")
+        memory_info[l[0].strip()]=l[1].strip()
+
+#======================================================================================================================
 def bSim(instruction):
     immediate = instruction[0] + instruction[24] + instruction[1:7] + instruction[20:24]
     
