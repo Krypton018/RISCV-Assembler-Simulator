@@ -4,7 +4,7 @@ import sys
 
 registers = {
     "PC": 0,
-    "00000": 0, "00001": 0, "00010": 0, "00011": 0, "00100": 0, "00101": 0,
+    "00000": 0, "00001": 0, "00010": 380, "00011": 0, "00100": 0, "00101": 0,
     "00110": 0, "00111": 0, "01000": 0, "01001": 0, "01010": 0, "01011": 0,
     "01100": 0, "01101": 0, "01110": 0, "01111": 0, "10000": 0, "10001": 0,
     "10010": 0, "10011": 0, "10100": 0, "10101": 0, "10110": 0, "10111": 0,
@@ -56,6 +56,12 @@ def dec_to_bin(n):
 
 
 
+def sign_extend(binary, n):
+    bit = binary[0]
+    return ((n-len(binary))*bit) + binary
+
+
+
 def bin_to_hex(bin_str):
     hex_dict = {10:"A", 11:"B", 12:"C", 13:"D", 14:"E", 15:"F"}
     
@@ -78,6 +84,7 @@ def bin_to_hex(bin_str):
     return hex_str
 
 
+
 def bin_to_dec(s):
     s = s.strip()
     n = len(s)
@@ -89,6 +96,8 @@ def bin_to_dec(s):
         num = -((1 << n) - num)
     
     return num
+
+
 
 def rSim(instruction):
     rs1=instruction[12:17]
@@ -160,6 +169,7 @@ def iSim(instruction):
     return return_address
 
 
+
 def sSim(instruction):
     imm=instruction[0:7]+instruction[20:25]
     rs1=instruction[12:17]
@@ -220,36 +230,22 @@ def jSim(instruction):
 
 
 
-# filepath="input.txt" #for now
-# instructions=[]
-# memory_info={}
-# file=open(filepath,"r")
-# data=file.readlines()
-# file.close()
-# for i in data:
-#     if i[1]=="b":
-#         instructions.append(l.strip() for l in i.split())
-#     else:
-#         l=i.split(":")
-#         memory_info[l[0].strip()]=l[1].strip()
-
-
-
-
-
-
 # SIMULATE
-def simulate(inst):
+def simulate(content):
+    data = []
     halt = False
 
+    instructions_list = [i.strip() for i in content]
+
     while(not halt):
-        
+        updated_registers = ""
+
         # All instructions have been read
-        if(registers['PC']//4 >= len(inst)):
+        if(registers['PC']//4 >= len(instructions_list)):
             halt = True
             break
 
-        instruction =  inst[registers['PC']//4]
+        instruction =  instructions_list[registers['PC']//4]
         
         opcode = instruction[-7:]
         
@@ -270,83 +266,50 @@ def simulate(inst):
 
         else:
             # ERROR HANDLING SYS
-            print('Invalid Instruction') 
+            print('Invalid Instruction')
+            break
         
         for i in registers:
-            print(registers[i], end=' ')
-        print()
-    for i in memory:
-        print(i)
+            temp = f"{registers[i] if int(registers[i]) >= 0 else (2**32+registers[i])} "
+            updated_registers = updated_registers + temp 
+        updated_registers = updated_registers + "\n"
+
+        data.append(updated_registers)
+
+    
+    for i in range(len(memory)):
+        memory_adress = bin_to_hex(sign_extend((dec_to_bin(16**4 + 4*i)),32))
+        memory_data = f"0x{memory_adress}:{memory[i]}\n"
         
+        data.append(memory_data)
 
-# instructions = [
-#     "00000000010100000000010010010011",
-#     "00000000000000000000100100010011",
-#     "00000000010100000010001100110011",
-#     "00000000100110010101101000110011",
-#     "00000000000000000000000001100011"
-# ]
-# instructions = [
-#     "00000000101000000000010100010011",
-#     "00000000000000000000001010010011",
-#     "00000000000100000000001100010011",
-#     "00000000000100000000001110010011",
-#     "00000010000001010000001001100011",
-#     "00000010011101010000001001100011",
-#     "00000000011000101000010110110011",
-#     "00000000000000110000001010010011",
-#     "00000000000001011000001100010011",
-#     "00000000000100111000001110010011",
-#     "11111110101000111001100011100011",
-#     "00000101110100000000100010010011",
-#     "00000000000000000000010100010011",
-#     "00000000000000000000010110010011",
-#     "00000000000100000000010110010011",
-#     "00000000000000000000000001100011"
-# ]
-# instructions = [
-#     "00000000011110100000101000010011",
-#     "01000001010000000000111100110011",
-#     "00000001010010100000101010110011",
-#     "00000001010110100010111000110011",
-#     "00000001010010101010111010110011",
-#     "00000001010011101101100000110011",
-#     "00000001110111101101100010110011",
-#     "00000000000000000000000001100011"
-# ]
-instructions = [
-    "00000000010100000000010010010011",
-    "00000000000000000000100100010011",
-    "00000000010100000010001100110011",
-    "11111111100000010000000100010011",
-    "00000001100000000000000001100111",
-    "00000000100010010000100110010011",
-    "00010000000000000000101000010011",
-    "00000001010010100000101000110011",
-    "00000001010010100000101000110011",
-    "00000001010010100000101000110011",
-    "00000001010010100000101000110011",
-    "00000001010010100000101000110011",
-    "00000001010010100000101000110011",
-    "00000001010010100000101000110011",
-    "00000001010010100000101000110011",
-    "00000000101010100010000000100011",
-    "00000000000010100010101100000011",
-    "00000000101010100010000000100011",
-    "00000000000010100010110000000011",
-    "00000000101010100010000000100011",
-    "00000001001010100010000000100011",
-    "00000000010000010000000100010011",
-    "00000000000000010010001010000011",
-    "00000000000000000000000001100011"
-]
+    return data
 
 
-simulate(instructions)
+
+# input_folder = "../automatedTesting/tests/bin/simple/simple_1.txt"
+# output_folder = "../automatedTesting/tests/user_traces/simple/simple_1.txt"
+# terminal command ==> python3 Simulator.py ../automatedTesting/tests/bin/simple/simple_1.txt ../automatedTesting/tests/user_traces/simple/simple_1.txt
+# pwd = (SimpleSimulator)
 
 
-# 000000011000 00000 000 00000 1100111
-# 24
+
+input_file = sys.argv[1]
+output_file = sys.argv[2]
+
+if not os.path.isfile(input_file):
+    sys.exit("\nInvalid File Path\n")
+
+
+with open(input_file, 'r') as f:
+    content = f.readlines()
+    data = simulate(content)
+with open(output_file, 'w') as f:
+    f.writelines(data)
+
+
+
+
 
 # BASE CONVERSIONS
 # bin to dec (2s complement)
