@@ -21,7 +21,8 @@ memory = {
     "10040": 0, "10044": 0, "10048": 0, "1004C": 0,
     "10050": 0, "10054": 0, "10058": 0, "1005C": 0,
     "10060": 0, "10064": 0, "10068": 0, "1006C": 0,
-    "10070": 0, "10074": 0, "10078": 0, "1007C": 0
+    "10070": 0, "10074": 0, "10078": 0, "1007C": 0,
+    "00178": 0
 }
 
 
@@ -147,7 +148,8 @@ def addi(imm,rs1,f3,rd):
     return registers['PC'] + 4
 
 def jalr(imm,rs1,f3,rd):
-    registers[rd]=registers["PC"]+4
+    if (rd != "00000"):
+        registers[rd]=registers["PC"]+4
     return_address = registers[rs1]+bin_to_dec(imm)
     return_address |= 1
     return_address ^= 1
@@ -237,10 +239,13 @@ def bSim(instruction):
 def jSim(instruction):
     imm = instruction[0] + instruction[12:20] + instruction[11] + instruction[1:11] + '0'
     rd = instruction[20:25]
-    registers[rd] = registers['PC'] + 4
+    if (rd != "00000"):
+        registers[rd] = registers['PC'] + 4
 
-
-    return registers['PC'] + bin_to_dec(imm) 
+    if (bin_to_dec(imm)%4 == 0):
+        return registers['PC'] + bin_to_dec(imm) 
+    else:
+        return registers['PC'] + 4
 
 
 
