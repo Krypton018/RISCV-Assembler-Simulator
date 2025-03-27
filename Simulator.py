@@ -13,8 +13,17 @@ registers = {
 }
 
 
-memory = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+memory = {
+    "10000": 0, "10004": 0, "10008": 0, "1000C": 0,
+    "10010": 0, "10014": 0, "10018": 0, "1001C": 0,
+    "10020": 0, "10024": 0, "10028": 0, "1002C": 0,
+    "10030": 0, "10034": 0, "10038": 0, "1003C": 0,
+    "10040": 0, "10044": 0, "10048": 0, "1004C": 0,
+    "10050": 0, "10054": 0, "10058": 0, "1005C": 0,
+    "10060": 0, "10064": 0, "10068": 0, "1006C": 0,
+    "10070": 0, "10074": 0, "10078": 0, "1007C": 0
+}
+
 
 
 
@@ -130,7 +139,7 @@ def rSim(instruction):
 
 
 def lw(imm,rs1,f3,rd):
-    registers[rd]=memory[registers[rs1]+bin_to_dec(imm)]
+    registers[rd]=memory[bin_to_hex(sign_extend((dec_to_bin(registers[rs1])),20))]
     return registers['PC'] + 4
 
 def addi(imm,rs1,f3,rd):
@@ -174,7 +183,7 @@ def sSim(instruction):
     imm=instruction[0:7]+instruction[20:25]
     rs1=instruction[12:17]
     rs2=instruction[7:12]
-    memory[registers[rs1]+bin_to_dec(imm)]=rs2
+    memory[bin_to_hex(sign_extend((dec_to_bin(registers[rs1]+bin_to_dec(imm))),20))]=registers[rs2]
     return registers["PC"]+4
 
 
@@ -211,14 +220,14 @@ def bSim(instruction):
             registers["PC"] += 4
 
     else:
-        print("Invalid funct3 value")
+        sys.exit("Invalid funct3 value\n")
 
     return registers["PC"], vHalt
 
 
 
 def jSim(instruction):
-    imm = instruction[0] + instruction[10:20] + instruction[9] + instruction[1:9] + '0'
+    imm = instruction[0] + instruction[12:20] + instruction[11] + instruction[1:11] + '0'
     rd = instruction[20:25]
     registers[rd] = registers['PC'] + 4
 
@@ -277,11 +286,16 @@ def simulate(content):
         data.append(updated_registers)
 
     
-    for i in range(len(memory)):
-        memory_adress = bin_to_hex(sign_extend((dec_to_bin(16**4 + 4*i)),32))
-        memory_data = f"0x{memory_adress}:{memory[i]}\n"
-        
+    for (address,value) in memory.items():
+        memory_address = '000'+address
+        memory_data = f"0x{memory_address}:{value}\n"
+
         data.append(memory_data)
+    # for i in range(len(memory)):
+    #     memory_adress = bin_to_hex(sign_extend((dec_to_bin(16**4 + 4*i)),32))
+    #     memory_data = f"0x{memory_adress}:{memory[bin_to_hex(sign_extend((dec_to_bin(16**4 + 4*i)),20))]}\n"
+        
+    #     data.append(memory_data)
 
     return data
 
@@ -292,6 +306,7 @@ def simulate(content):
 # terminal command ==> python3 Simulator.py ../automatedTesting/tests/bin/simple/simple_1.txt ../automatedTesting/tests/user_traces/simple/simple_1.txt
 # pwd = (SimpleSimulator)
 
+# python3 Simulator.py ..\automatedTesting\tests\bin\simple\simple_6.txt ..\automatedTesting\tests\user_traces\simple\simple_6.txt
 
 
 input_file = sys.argv[1]
@@ -306,9 +321,6 @@ with open(input_file, 'r') as f:
     data = simulate(content)
 with open(output_file, 'w') as f:
     f.writelines(data)
-
-
-
 
 
 # BASE CONVERSIONS
