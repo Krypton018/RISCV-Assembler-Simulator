@@ -218,7 +218,7 @@ def bSim(instruction):
 
 
 def jSim(instruction):
-    imm = instruction[0] + instruction[10:20] + instruction[9] + instruction[1:9] + '0'
+    imm = instruction[0] + instruction[12:20] + instruction[11] + instruction[1:11] + '0'
     rd = instruction[20:25]
     registers[rd] = registers['PC'] + 4
 
