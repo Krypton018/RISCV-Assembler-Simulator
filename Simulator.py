@@ -219,8 +219,16 @@ def bSim(instruction):
         else:
             registers["PC"] += 4
 
+    elif (funct3 == "100"):                        # BONUS blt INSTRUCTION
+        if (registers[rs1] < registers[rs2]):
+            registers["PC"] += int(immediate)
+            if (int(immediate) == 0 ):
+                vHalt = True
+        else:
+            registers["PC"] += 4
+
     else:
-        sys.exit("Invalid funct3 value\n")
+        sys.exit("Invalid funct3 value for B-Type Opcode\n")
 
     return registers["PC"], vHalt
 
@@ -234,8 +242,6 @@ def jSim(instruction):
 
     return registers['PC'] + bin_to_dec(imm) 
 
-#immediate value expression for J type (Dhruv's expression, not Bhavya's)-->
-#immediate = instruction[0] + instruction[12:20] + instruction[11] + instruction[1:11]
 
 
 
@@ -291,19 +297,15 @@ def simulate(content):
         memory_data = f"0x{memory_address}:{value}\n"
 
         data.append(memory_data)
-    # for i in range(len(memory)):
-    #     memory_adress = bin_to_hex(sign_extend((dec_to_bin(16**4 + 4*i)),32))
-    #     memory_data = f"0x{memory_adress}:{memory[bin_to_hex(sign_extend((dec_to_bin(16**4 + 4*i)),20))]}\n"
-        
-    #     data.append(memory_data)
 
     return data
 
 
 
+
 # input_folder = "../automatedTesting/tests/bin/simple/simple_1.txt"
 # output_folder = "../automatedTesting/tests/user_traces/simple/simple_1.txt"
-# terminal command ==> python3 Simulator.py ../automatedTesting/tests/bin/simple/simple_1.txt ../automatedTesting/tests/user_traces/simple/simple_1.txt
+# python3 Simulator.py ../automatedTesting/tests/bin/simple/simple_6.txt ../automatedTesting/tests/user_traces/simple/simple_6.txt
 # pwd = (SimpleSimulator)
 
 # python3 Simulator.py ..\automatedTesting\tests\bin\simple\simple_6.txt ..\automatedTesting\tests\user_traces\simple\simple_6.txt
@@ -315,12 +317,13 @@ output_file = sys.argv[2]
 if not os.path.isfile(input_file):
     sys.exit("\nInvalid File Path\n")
 
-
 with open(input_file, 'r') as f:
     content = f.readlines()
     data = simulate(content)
 with open(output_file, 'w') as f:
     f.writelines(data)
+
+
 
 
 # BASE CONVERSIONS
