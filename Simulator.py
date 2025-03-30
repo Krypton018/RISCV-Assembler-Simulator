@@ -22,7 +22,6 @@ memory = {
     "10050": 0, "10054": 0, "10058": 0, "1005C": 0,
     "10060": 0, "10064": 0, "10068": 0, "1006C": 0,
     "10070": 0, "10074": 0, "10078": 0, "1007C": 0,
-    "00178": 0
 }
 
 
@@ -113,70 +112,83 @@ def rSim(instruction):
     rs1=instruction[12:17]
     rs2=instruction[7:12]
     rd=instruction[20:25]
+
+    if (rs1 not in registers or rs2 not in registers or rd not in registers):
+        sys.exit(f'\nError on Line {registers['PC']//4 + 1}\nInvalid Register \n')
+
     if(instruction[17:20]=="000" and instruction[0:7]=="0000000"):
         registers[rd]=registers[rs1]+registers[rs2]
 
     elif(instruction[17:20]=="000" and instruction[0:7]=="0100000"):
         registers[rd]=registers[rs1]-registers[rs2]
 
-    elif(instruction[17:20]=="010"):
+    elif(instruction[17:20]=="010" and instruction[0:7]=="0000000"):
         if(registers[rs1]<registers[rs2]):
             registers[rd]=1
         else:
             registers[rd]=0
 
-    elif(instruction[17:20]=="101"):
+    elif(instruction[17:20]=="101" and instruction[0:7]=="0000000"):
         rightshift=registers[rs2]&31
         registers[rd]=registers[rs1]>>rightshift
 
-    elif(instruction[17:20]=="110"):
+    elif(instruction[17:20]=="110" and instruction[0:7]=="0000000"):
         registers[rd]=registers[rs1]|registers[rs2]
 
-    elif(instruction[17:20]=="111"):
+    elif(instruction[17:20]=="111" and instruction[0:7]=="0000000"):
         registers[rd]=registers[rs1]&registers[rs2]
     
+    else:
+        sys.exit(f'\nError on Line {registers['PC']//4 + 1}\nInvalid Instruction\n')
     return registers["PC"]+4
 
 
 
-def lw(imm,rs1,f3,rd):
-    registers[rd]=memory[bin_to_hex(sign_extend((dec_to_bin(registers[rs1])),20))]
+def lw(imm,rs1,rd):
+
+    mem_add = bin_to_hex(sign_extend((dec_to_bin(registers[rs1]+bin_to_dec(imm))),20))
+    if ((registers[rs1]+bin_to_dec(imm))%4 != 0):
+        sys.exit(f"\nError on Line {registers['PC']//4 + 1}\nMemory address is not a multiple of 4\n")
+    if (mem_add not in memory.keys()):
+        sys.exit(f"\nError on Line {registers['PC']//4 + 1}\nAccessing Memory Location out of range\n")
+
+    registers[rd]=memory[mem_add]
     return registers['PC'] + 4
 
-def addi(imm,rs1,f3,rd):
+def addi(imm,rs1,rd):
     registers[rd]=registers[rs1]+bin_to_dec(imm)
     return registers['PC'] + 4
 
-def jalr(imm,rs1,f3,rd):
+def jalr(imm,rs1,rd):
     if (rd != "00000"):
         registers[rd]=registers["PC"]+4
+    
     return_address = registers[rs1]+bin_to_dec(imm)
+    if ((return_address)%4 != 0):
+        sys.exit(f'\nError on Line {registers['PC']//4 + 1}\nJump location is not a multiple of 4\n')
     return_address |= 1
     return_address ^= 1
     return return_address
 
 def iSim(instruction):
-    imm=""
-    rd=""
-    rs1=""
-    f3=""
-    op=""
-    for i in range(12):
-        imm+=instruction[i]
-    for i in range(12,17):
-        rs1+=instruction[i]
-    for i in range(17,20):
-        f3+=instruction[i]
-    for i in range(20,25):
-        rd+=instruction[i]
-    for i in range(25,32):
-        op+=instruction[i]
-    if(op=="0000011"):
-        return_address = lw(imm,rs1,f3,rd)
-    elif (op=="0010011"):
-        return_address = addi(imm,rs1,f3,rd)
-    elif (op=="1100111"):
-        return_address = jalr(imm,rs1,f3,rd)
+    imm=instruction[:12]
+    rs1=instruction[12:17]
+    f3=instruction[17:20]
+    rd=instruction[20:25]
+    op=instruction[25:]
+
+
+    if (rs1 not in registers or rd not in registers):
+        sys.exit(f'\nError on Line {registers['PC']//4 + 1}\nInvalid Register\n')
+
+    if(op=="0000011" and f3=="010"):
+        return_address = lw(imm,rs1,rd)
+    elif (op=="0010011" and f3=="000"):
+        return_address = addi(imm,rs1,rd)
+    elif (op=="1100111" and f3=="000"):
+        return_address = jalr(imm,rs1,rd)
+    else:
+        sys.exit(f'\nError on Line {registers['PC']//4 + 1}\nInvalid Instruction\n')
     return return_address
 
 
@@ -185,7 +197,17 @@ def sSim(instruction):
     imm=instruction[0:7]+instruction[20:25]
     rs1=instruction[12:17]
     rs2=instruction[7:12]
-    memory[bin_to_hex(sign_extend((dec_to_bin(registers[rs1]+bin_to_dec(imm))),20))]=registers[rs2]
+
+    if (rs1 not in registers or rs2 not in registers):
+        sys.exit(f"\nError on Line {registers['PC']//4 + 1}\nInvalid Register\n")
+
+    mem_add = bin_to_hex(sign_extend((dec_to_bin(registers[rs1]+bin_to_dec(imm))),20))
+    if ((registers[rs1]+bin_to_dec(imm))%4 != 0):
+        sys.exit(f'\nError on Line {registers['PC']//4 + 1}\nMemory address is not a multiple of 4\n')
+    if (mem_add not in memory):
+        sys.exit(f'\nError on Line {registers['PC']//4 + 1}\nAccessing Memory Location out of range\n')
+
+    memory[mem_add]=registers[rs2]
     return registers["PC"]+4
 
 
@@ -202,7 +224,7 @@ def bSim(instruction):
     
 
     if (rs1 not in registers or rs2 not in registers):
-        print(f"Invalid Register on line {(registers["PC"]//4)+4}")
+        sys.exit(f"\nError on line {(registers["PC"]//4) + 1}\nInvalid Register\n")
 
 
     if (funct3 == "000"):
@@ -230,7 +252,7 @@ def bSim(instruction):
             registers["PC"] += 4
 
     else:
-        sys.exit("Invalid funct3 value for B-Type Opcode\n")
+        sys.exit(f"\nError on Line {registers['PC']//4 + 1}\nInvalid Instruction\n")
 
     return registers["PC"], vHalt
 
@@ -239,13 +261,17 @@ def bSim(instruction):
 def jSim(instruction):
     imm = instruction[0] + instruction[12:20] + instruction[11] + instruction[1:11] + '0'
     rd = instruction[20:25]
+    
+    if (rd not in registers):
+        sys.exit(f"\nError on Line {registers['PC']//4 + 1}\nInvalid Register\n")
+
     if (rd != "00000"):
         registers[rd] = registers['PC'] + 4
 
     if (bin_to_dec(imm)%4 == 0):
         return registers['PC'] + bin_to_dec(imm) 
     else:
-        return registers['PC'] + 4
+        sys.exit(f'\nError on Line {registers['PC']//4 + 1}\nMemory address is not a multiple of 4\n')
 
 
 
@@ -285,9 +311,10 @@ def simulate(content):
             registers['PC'] = jSim(instruction)
 
         else:
-            # ERROR HANDLING SYS
-            print('Invalid Instruction')
-            break
+            sys.exit(f'\nInvalid Opcode on Line {registers['PC']//4 + 1}\n')
+        
+        # Hard Wiring x0 to 0
+        registers['00000'] = 0
         
         for i in registers:
             temp = f"{registers[i] if int(registers[i]) >= 0 else (2**32+registers[i])} "
@@ -295,6 +322,7 @@ def simulate(content):
         updated_registers = updated_registers + "\n"
 
         data.append(updated_registers)
+        # print(updated_registers)
 
     
     for (address,value) in memory.items():
