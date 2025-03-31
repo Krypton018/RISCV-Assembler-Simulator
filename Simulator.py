@@ -25,6 +25,17 @@ memory = {
 }
 
 
+stack_memory = {
+    "00100": 0, "00104": 0, "00108": 0, "0010C": 0,
+    "00110": 0, "00114": 0, "00118": 0, "0011C": 0,
+    "00120": 0, "00124": 0, "00128": 0, "0012C": 0,
+    "00130": 0, "00134": 0, "00138": 0, "0013C": 0,
+    "00140": 0, "00144": 0, "00148": 0, "0014C": 0,
+    "00150": 0, "00154": 0, "00158": 0, "0015C": 0,
+    "00160": 0, "00164": 0, "00168": 0, "0016C": 0,
+    "00170": 0, "00174": 0, "00178": 0, "0017C": 0,
+}
+
 
 
 def dec_to_bin(n):
@@ -149,10 +160,14 @@ def lw(imm,rs1,rd):
     mem_add = bin_to_hex(sign_extend((dec_to_bin(registers[rs1]+bin_to_dec(imm))),20))
     if ((registers[rs1]+bin_to_dec(imm))%4 != 0):
         sys.exit(f"\nError on Line {registers['PC']//4 + 1}\nMemory address is not a multiple of 4\n")
-    if (mem_add not in memory.keys()):
+    if (mem_add not in memory.keys() and mem_add not in stack_memory.keys()):
         sys.exit(f"\nError on Line {registers['PC']//4 + 1}\nAccessing Memory Location out of range\n")
 
-    registers[rd]=memory[mem_add]
+    if (mem_add in memory.keys()):
+        registers[rd]=memory[mem_add]
+    elif (mem_add in stack_memory.keys()):
+        registers[rd]=stack_memory[mem_add]
+    
     return registers['PC'] + 4
 
 def addi(imm,rs1,rd):
@@ -204,10 +219,14 @@ def sSim(instruction):
     mem_add = bin_to_hex(sign_extend((dec_to_bin(registers[rs1]+bin_to_dec(imm))),20))
     if ((registers[rs1]+bin_to_dec(imm))%4 != 0):
         sys.exit(f'\nError on Line {registers['PC']//4 + 1}\nMemory address is not a multiple of 4\n')
-    if (mem_add not in memory):
+    if (mem_add not in memory.keys() and mem_add not in stack_memory.keys()):
         sys.exit(f'\nError on Line {registers['PC']//4 + 1}\nAccessing Memory Location out of range\n')
 
-    memory[mem_add]=registers[rs2]
+    if (mem_add in memory.keys()):
+        memory[mem_add]=registers[rs2]
+    elif (mem_add in stack_memory.keys()):
+        stack_memory[mem_add]=registers[rs2]
+
     return registers["PC"]+4
 
 
@@ -313,7 +332,7 @@ def simulate(content):
         else:
             sys.exit(f'\nInvalid Opcode on Line {registers['PC']//4 + 1}\n')
         
-        # Hard Wiring x0 to 0
+        # Hard Wiring x0 to 0 incase it is updated by an instruction
         registers['00000'] = 0
         
         for i in registers:
