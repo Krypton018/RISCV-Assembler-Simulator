@@ -336,7 +336,8 @@ def simulate(content):
         registers['00000'] = 0
         
         for i in registers:
-            temp = f"{registers[i] if int(registers[i]) >= 0 else (2**32+registers[i])} "
+            #temp = f"{registers[i] if int(registers[i]) >= 0 else (2**32+registers[i])} "
+            temp = f"0b{sign_extend(dec_to_bin(registers[i]),32)} "
             updated_registers = updated_registers + temp 
         updated_registers = updated_registers + "\n"
 
@@ -346,7 +347,8 @@ def simulate(content):
     
     for (address,value) in memory.items():
         memory_address = '000'+address
-        memory_data = f"0x{memory_address}:{value}\n"
+        #memory_data = f"0x{memory_address}:{value}\n"
+        memory_data = f"0x{memory_address}:0b{sign_extend(dec_to_bin(value),32)}\n"
 
         data.append(memory_data)
 
